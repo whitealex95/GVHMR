@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--folder", type=str)
     parser.add_argument("-d", "--output_root", type=str, default=None)
     parser.add_argument("-s", "--static_cam", action="store_true", help="If true, skip DPVO")
+    parser.add_argument("-m", "--mirror", action="store_true", help="If true, mirror (flip horizontally) the video")
     args = parser.parse_args()
 
     folder = Path(args.folder)
@@ -25,5 +26,7 @@ if __name__ == "__main__":
             command += ["--output_root", output_root]
         if args.static_cam:
             command += ["-s"]
+        if args.mirror:
+            command += ["-m"]
         Log.info(f"Running: {' '.join(command)}")
         subprocess.run(command, env=dict(os.environ), check=True)

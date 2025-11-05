@@ -52,6 +52,7 @@ def parse_args_to_cfg():
         "If the camera zoom in a lot, you can try 135, 200 or even larger values.",
     )
     parser.add_argument("--verbose", action="store_true", help="If true, draw intermediate results")
+    parser.add_argument("-m", "--mirror", action="store_true", help="If true, mirror (flip horizontally) the video")
     args = parser.parse_args()
 
     # Input
@@ -88,6 +89,8 @@ def parse_args_to_cfg():
         reader = get_video_reader(video_path)
         writer = get_writer(cfg.video_path, fps=30, crf=CRF)
         for img in tqdm(reader, total=get_video_lwh(video_path)[0], desc=f"Copy"):
+            if args.mirror:
+                img = cv2.flip(img, 1)  # 1 means horizontal flip
             writer.write_frame(img)
         writer.close()
         reader.close()
