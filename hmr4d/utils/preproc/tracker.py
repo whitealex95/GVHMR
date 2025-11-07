@@ -19,7 +19,8 @@ from hmr4d.utils.net_utils import moving_average_smooth
 class Tracker:
     def __init__(self) -> None:
         # https://docs.ultralytics.com/modes/predict/
-        self.yolo = YOLO(PROJ_ROOT / "inputs/checkpoints/yolo/yolov8x.pt")
+        # self.yolo = YOLO(PROJ_ROOT / "inputs/checkpoints/yolo/yolov8x.pt")
+        self.yolo = YOLO(PROJ_ROOT / "inputs/checkpoints/yolo/yolo11x.pt") # pip install --upgrade ultralytics
 
     def track(self, video_path):
         track_history = []
@@ -33,7 +34,8 @@ class Tracker:
         results = self.yolo.track(video_path, **cfg)
         # frame-by-frame tracking
         track_history = []
-        for result in tqdm(results, total=get_video_lwh(video_path)[0], desc="YoloV8 Tracking"):
+        # for frame_idx, result in enumerate(tqdm(results, total=get_video_lwh(video_path)[0], desc="YoloV8 Tracking")):
+        for frame_idx, result in enumerate(tqdm(results, total=get_video_lwh(video_path)[0], desc="YoloV11 Tracking")):
             if result.boxes.id is not None:
                 track_ids = result.boxes.id.int().cpu().tolist()  # (N)
                 bbx_xyxy = result.boxes.xyxy.cpu().numpy()  # (N, 4)
