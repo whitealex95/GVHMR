@@ -39,6 +39,8 @@ class Tracker:
             if result.boxes.id is not None:
                 track_ids = result.boxes.id.int().cpu().tolist()  # (N)
                 bbx_xyxy = result.boxes.xyxy.cpu().numpy()  # (N, 4)
+                if frame_idx > 150 * 30: # 150 seconds into the video at 30fps
+                    bbx_xyxy[:, 2] += 300 # temp fix for yolov11, extending right edge a bit further
                 result_frame = [{"id": track_ids[i], "bbx_xyxy": bbx_xyxy[i]} for i in range(len(track_ids))]
             else:
                 result_frame = []
