@@ -8,12 +8,13 @@ import hydra
 from hydra import initialize_config_module, compose
 from pathlib import Path
 from pytorch3d.transforms import quaternion_to_matrix
+import gc
 
 from hmr4d.configs import register_store_gvhmr
 from hmr4d.utils.video_io_utils import (
     get_video_lwh,
     read_video_np,
-    save_video,
+    save_video, save_video_fast,
     merge_videos_horizontal,
     get_writer,
     get_video_reader,
@@ -121,7 +122,10 @@ def run_preprocess(cfg):
         video = read_video_np(video_path)
         bbx_xyxy = torch.load(paths.bbx)["bbx_xyxy"]
         video_overlay = draw_bbx_xyxy_on_image_batch(bbx_xyxy, video)
-        save_video(video_overlay, cfg.paths.bbx_xyxy_video_overlay)
+        print("Saving bbx overlayed Video")
+        save_video_fast(video_overlay, cfg.paths.bbx_xyxy_video_overlay, crf=23)
+        del video, video_overlay, bbx_xyxy
+        gc.collect()
 
     # Get VitPose
     if not Path(paths.vitpose).exists():
@@ -135,7 +139,9 @@ def run_preprocess(cfg):
     if verbose:
         video = read_video_np(video_path)
         video_overlay = draw_coco17_skeleton_batch(video, vitpose, 0.5)
-        save_video(video_overlay, paths.vitpose_video_overlay)
+        save_video_fast(video_overlay, paths.vitpose_video_overlay)
+        del video, video_overlay
+        gc.collect()
 
     # Get vit features
     if not Path(paths.vit_features).exists():

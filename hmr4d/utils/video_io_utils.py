@@ -80,6 +80,42 @@ def save_video(images, video_path, fps=30, crf=17):
         writer._video_stream.options = {"crf": str(crf)}
         writer.write(images)
 
+import subprocess
+
+def save_video_fast(images, video_path, fps=30, crf=23):
+    """
+    Streams one frame at a time → **constant RAM** usage.
+    Use NVENC for speed (GPU encoding).
+    """
+    # images can be a generator / list / array / torch tensor
+    if isinstance(images, torch.Tensor):
+        images = images.cpu().numpy()
+
+    # Get first frame to determine shape
+    h, w = images[0].shape[:2]
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "rawvideo",
+        "-pix_fmt", "rgb24",
+        "-s", f"{w}x{h}",
+        "-r", str(fps),
+        "-i", "-",
+        "-vcodec", "h264_nvenc",
+        "-preset", "fast",
+        "-cq", str(crf),
+        "-pix_fmt", "yuv420p",
+        video_path,
+    ]
+
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+
+    # Write one frame at a time (this keeps memory flat)
+    for frame in images:
+        p.stdin.write(frame.astype(np.uint8).tobytes())
+
+    p.stdin.close()
+    p.wait()
 
 def get_writer(video_path, fps=30, crf=17):
     """remember to .close()"""
